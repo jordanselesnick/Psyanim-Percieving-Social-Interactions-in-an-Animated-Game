@@ -1,2 +1,5 @@
 # Psyanim-Percieving-Social-Interactions-in-an-Animated-Game
 Welcome to my branch of the Finn Lab's Psyanim project! In our work, we investigate what factors impact how people perceive social interactions in an animated game.
+
+Studying how people perceive social interactions in animations is becoming increasingly important as online interactions become more prevalent. As we rely more and more on digital platforms for communication and socialization, it's crucial to understand what factors make these interactions feel meaningful and satisfying. Animations are a unique platform for studying the perception of social interactions, as they allow for precise control over the visual cues presented to the viewer. By investigating how people perceive and interpret social cues in animated interactions, we can gain valuable insights into the mechanisms underlying social perception and interaction. This research has implications for fields such as social psychology, human-computer interaction, and digital media design, and can inform the development of more effective and engaging online communication tools. 
+
