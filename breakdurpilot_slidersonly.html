@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Animations study</title>
+    <script src="expt_material/Intro_text_final.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
+    <!--VIDEO NAMES LIST-->
+    <script src="expt_material/randomization/vidNames1.js"></script>
+
+    <!-- TO LOAD STIMULUS SET FOR THE PILOT RUNS-->
+    <!--<script src="expt_material/stim_set/pilot/stimSets.js"></script>-->
+    <script src="expt_material/stim_set/main/stimSets.js"></script>
+
+    <!-- TO LOAD STIMULUS SET FOR THE MAIN RUNS-->
+    <!--<script src="expt_material/stim_set/main/stimSets.js"></script>-->
+    <!-- <script src="expt_material/randomization/stimInfo.js"></script>-->
+
+    <link rel="stylesheet" href="jspsych/jspsych.css" />
+    <style>
+        .jspsych-display-element {
+            font-size: 20px;
+        }
+        
+        .jspsych-content {
+            max-width: 95%;
+        }
+        
+        .jspsych-btn {
+            font-size: 20px;
+        }
+        
+        input[type="text"] {
+            font-size: 32px;
+        }
+    </style>
+</head>
+
+
+<script src="jspsych/jspsych.js"></script>
+<script src="jspsych/plugin-preload.js"></script>
+<script src="jspsych/plugin-video-keyboard-response_1.js"></script>
+<script src="jspsych/plugin-html-slider-response.js"></script>
+<script src="jspsych/plugin-survey-text.js"></script>
+<script src="jspsych/plugin-instructions.js"></script>
+<script src="jspsych/plugin-survey-multi-choice.js"></script>T
+<script src="jspsych/plugin-survey-multi-select.js"></script>
+<script src="jspsych/plugin-html-keyboard-response.js"></script>
+<script src="jspsych/plugin-fullscreen.js"></script>
+<script src="jspsych/plugin-survey-html-form.js"></script>
+<script src="jspsych/plugin-survey-html-form copy_2qns.js"></script>
+
+<script src="jspsych/plugin-call-function.js"></script>
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'></script>
+
+<!DOCTYPE html>
+<script>
+    const mainFolderName = "./main_animations/animations/webm_files/";
+
+    function shuffle(a) { // to shuffle vids
+        var j, x, i;
+        for (i = a.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = a[i];
+            a[i] = a[j];
+            a[j] = x;
+        }
+        return a;
+    }
+
+
+    var jsPsych = initJsPsych({
+        adapt_to_file_protocol: false,
+        override_safe_mode: true,
+        show_progress_bar: true,
+        on_close: function() { // doesn't seem to work?
+            saveData_end("_data", jsPsych.data.get().csv());
+            save_end_data_csv();
+        }
+    });
+
+    function generateRandomTrials(trialFiles, numPerTrial) {
+        result = []
+        for (const [fileName, fileNumbers] of Object.entries(trialFiles)) {
+            trialNumbers = [];
+            // Generate unique random numbers
+            while(trialNumbers.length < numPerTrial){
+                var randomNumber = Math.floor(Math.random() * fileNumbers.length);
+                if(trialNumbers.indexOf(randomNumber) === -1) {
+                    trialNumbers.push(randomNumber);
+                }
+            }
+            result.push(trialNumbers.map(trialNumber => `${fileName}${fileNumbers[trialNumber]}.webm`));
+        }
+        return result;
+    }
+
+    // Get subject nr from the URL
+    var participant = jsPsych.data.getURLVariable('participant');
+    //participant = 1; // while testing
+    console.log('participant', participant)
+    var participant = Number(participant)
+    jsPsych.data.addProperties({
+        participant: participant
+    });
+
+    // Set up the trials to run for this experiment. 
+    trialFiles = {
+        "BD0_G": [1, 2, 3, 4, 5], 
+        "BD0_G": [6, 7, 8, 9, 10], 
+        "BD500_G": [1, 2, 3, 4, 5],
+        "BD500_G": [6, 7, 8, 9, 10],
+        "BD1000_G": [1, 2, 3, 4, 5], 
+        "BD1000_G": [6, 7, 8, 9, 10], 
+        "BD2000_G": [1, 2, 3, 4, 5], 
+        "BD2000_G": [6, 7, 8, 9, 10], 
+        "BD4000_G": [1, 2, 3, 4, 5],
+        "BD4000_G": [6, 7, 8, 9, 10], 
+        "BD8000_G": [1, 2, 3, 4, 5], 
+        "BD8000_G": [6, 7, 8, 9, 10],
+        "w_G": [1, 2, 3, 4, 5], 
+        "w_G": [6, 7, 8, 9, 10],
+    };
+    
+    numPerTrial = 1; // Number of trials for each trial type 
+    stim_list = generateRandomTrials(trialFiles, numPerTrial);
+
+    shuffle(stim_list);
+    console.log('stim_list: ' + stim_list)
+
+    jsPsych.data.addProperties({
+        stim_list: stim_list
+    });
+
+    var enter_fullscreen = {
+        type: jsPsychFullscreen,
+        fullscreen_mode: false
+    }
+
+    var prolificID_start = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p align="left"> <strong>Please enter your name here and proceed.<br>Note: Do not press the Enter/Return key before you finish typing.</p>',
+        html: '<p align="left"> <input id = "prolific_ID_ID" class="textbox" type="text" size="50%"height="50" name="prolific_ID_name_start" required /> <br></p>',
+        button_label: 'Continue'
+    };
+
+    var preload = {
+        type: jsPsychPreload,
+        message: 'Please wait for a few seconds as the survey is being set up..',
+        auto_preload: true
+    }
+
+    var consent_form = { //consent form
+        type: jsPsychSurveyHtmlForm,
+        preamble: text_list[0].consent_form_naturalistic,
+        html: "<p><input type=checkbox id=consent_checkbox required/> <strong> I agree to take part in this study. </strong> </p>",
+        on_load: function() {
+            saveData_temp("_data", jsPsych.data.get().csv());
+            save_temp_data_csv();
+        },
+        button_label: 'Continue'
+    };
+
+    // devices_off
+    var devices_off1 = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "<p>The survey has been optimized for Google Chrome.<p> It will take 10-15 minutes to complete. <br></p>",
+        html: "  ",
+        response_ends_trial: true,
+        button_label: "Continue",
+    };
+
+    var instr_files = { //instructions
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<div><video style="border:5px solid black" id="anim_instr" loop width="500" autoplay><source src= "demo_animations/playFight__chargeSpeed220_wander50_GreyR_var0.webm" type="video/webm"></video><strong><br><br>If you do not see the animation above, please exit now - you will not be able to submit the survey without this.</strong><p>In this survey, you will watch several short animations (no audio) such as the one above.</p></div> ',
+        html: '<p>There will be 14 animations in all. You will get a short break halfway. If you miss several responses, you will not be paid</strong>.</p><p>There are no right or wrong answers. </p><p> Do not press back or refresh at any point.</p><p><input type=checkbox id=instructions_checkbox required/> <strong> Understood. </strong> </p>'
+    };
+
+    var instr_q1 = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '<div style="width:800px;"><p><strong>You will be asked 3 questions after each video. The first two use sliders.<br> <p>Where you place the marker on the bar indicates both (i) <i>what</i> you see and (ii) <i>how confident</i> you feel about this.<br><p>Practice answering these questions on the next few pages.</strong><p>(1) Did the shapes feel alive?</p></div>',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Not Alive', 'Alive'],
+        slider_width: 400
+    };
+
+    var instr_q2 = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '(2) Did it seem like the shapes were having a social interaction, or were they moving independently?',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Moving Independently', 'Interacting'],
+        slider_width: 400
+    };
+
+    // Describe the video you just saw using 3 words. <br>Guess if you do not know.</p>
+    var q3_text_demo = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>(3) Using a few words or a phrase, briefly describe what happened in the video. <br><br> For this practice trial, please type in "test1"',
+        html: '<p> <input type="text" id="Text1_id" name="Text1" size="40" required><br></p>',
+        autofocus: 'Text1_id'
+    };
+
+    // load all the pages thus far
+    timeline_temp = [] // timeline to which each page will be loaded
+    timeline_temp.push(prolificID_start);
+    timeline_temp.push(preload);
+    timeline_temp.push(enter_fullscreen, consent_form)
+    timeline_temp.push(devices_off1)
+    timeline_temp.push(instr_files)
+    timeline_temp.push(instr_q1)
+    timeline_temp.push(instr_q2)
+    timeline_temp.push(q3_text_demo)
+
+    // ********************************** Demo begins *************************************
+    var demo_intro = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "Now you will complete 2 demo trials. <p>Each animation is unrelated to the one before and after it, so try to not let your opinion about the entities in one animation influence the next one. </strong>",
+        html: "  ",
+        response_ends_trial: true,
+        button_label: "Continue.",
+        internal_node_id: 'DemoIntro'
+    };
+    timeline_temp.push(demo_intro)
+
+    var demo_alive = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '(1) Did the shapes feel alive? <p> All the way to the right (“alive”) would mean that you saw them as humans or human-like. <p> All the way to the left (“not alive”) would mean that you saw them as objects (e.g., billiard balls).<br>',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Not Alive', 'Alive'],
+        trial_duration: 20000,
+        slider_width: 400
+    };
+
+    var demo_inter = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '(2) Did it seem like the shapes were having a social interaction, or were they moving independently? <p> All the way to the right (interacting) would mean that they were definitely having a social interaction. <p> All the way to the left (“moving independently”) would mean that they were moving independently.',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Moving Independently', 'Interacting'],
+        trial_duration: 20000,
+        slider_width: 400
+    };
+
+    var demo_descrip = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>(3) Using a few words or a phrase, briefly describe what happened in the video.',
+        html: '<p><input type="text" id="Text1_id" name="Text1" size="40" required><br></p>',
+        autofocus: 'Text1_id'
+    };
+
+
+    demo_files = ["H_duration_example.webm", "L_duration_example.webm"];
+
+    shuffle(demo_files);
+    console.log('demo_files: ', demo_files)
+    for (var i = 0; i < demo_files.length; i++) {
+        demoVidFilePath = `${mainFolderName}${demo_files[i]}`;
+        console.log(`Demo Video ${i}: ${demoVidFilePath}`);
+        timeline_temp.push({
+            preamble: ' ',
+            type: jsPsychVideoKeyboardResponse,
+            stimulus: [demoVidFilePath], // webm filename
+            response_ends_trial: false,
+            width: 500,
+            border: 5,
+            response_allowed_while_playing: false,
+            trial_ends_after_video: true,
+            choices: "NO_KEYS",
+            //trial_duration: 6200, //in ms
+            data: {
+                demo_trial_ind: i,
+                // demo_vid_nr: i, 
+                demo_vid_name: demoVidFilePath,
+            },
+        }); // push stim page
+        timeline_temp.push(demo_alive) // push q1
+        timeline_temp.push(demo_inter) // push q2
+        timeline_temp.push(demo_descrip) // push q3
+    }
+
+    // ********************************** Main expt section begins *************************************
+
+    var main_intro1 = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>Main experiment begins. <p>Remember that you should treat each animation as independent from the ones before and after it. </p>',
+        html: "  ",
+        response_ends_trial: true,
+        button_label: "Continue.",
+        on_load: function() {
+            saveData_temp("_data", jsPsych.data.get().csv());
+            save_temp_data_csv();
+        }
+    };
+    timeline_temp.push(main_intro1) // pusg main task intro
+
+    var main_intro2 = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>You may not be paid if you miss more than 10% of responses.</strong><br><strong>Do not press "back" or "refresh" at any point.</strong></p>',
+        html: "  ",
+        response_ends_trial: true,
+        button_label: "Continue."
+    };
+    timeline_temp.push(main_intro2) // push main task intro
+
+    var main_alive = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '(1) Did the shapes feel alive?<br>',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Not Alive', 'Alive'],
+        trial_duration: 10000,
+        slider_width: 400
+    };
+
+    var main_inter = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: '(2) Did it seem like the shapes were having a social interaction, or were they moving independently?<br>',
+        require_movement: true, //slider will not advance until they move it
+        labels: ['Moving Independently', 'Interacting'],
+        trial_duration: 10000,
+        slider_width: 400
+    };
+
+    var main_descrip = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>(3) Using a few words or a phrase, briefly describe what happened in the video.',
+        html: '<p><input type="text" id="Text1_id" name="Text1" size="40" required><br></p>',
+        autofocus: 'Text1_id'
+    };
+
+
+    for (var i = 0; i < stim_list.length; i++) { // main task loop
+        var stimFilePath = mainFolderName + stim_list[i];
+        console.log(`Trial ${i} video: ${stimFilePath}`);
+        timeline_temp.push({ // video plays
+            preamble: '',
+            type: jsPsychVideoKeyboardResponse,
+            stimulus: [stimFilePath], // webm filename
+            response_ends_trial: false,
+            width: 500,
+            border: 5,
+            response_allowed_while_playing: false,
+            trial_ends_after_video: true, // 8000ms
+            choices: "NO_KEYS",
+            //trial_duration: 6200, //in ms
+            data: {
+                trial_ind: i,
+                // vid_nr: i,
+                vid_name: stimFilePath,
+            },
+        });
+        timeline_temp.push(main_alive) // push responses page
+        timeline_temp.push(main_inter) // push responses page
+        timeline_temp.push(main_descrip) // push responses page
+
+        if ((i > 0) && (i % 7 == 0)) {
+            var break_screen = {
+                type: jsPsychSurveyHtmlForm,
+                preamble: "Good job! This is an optional break.<br>Press continue when you are ready to proceed.",
+                response_ends_trial: true,
+                html: ' ',
+                button_label: "Continue",
+                on_load: function() {
+                    saveData_temp("_data", jsPsych.data.get().csv());
+                    save_temp_data_csv();
+                }
+            };
+            timeline_temp.push(break_screen);
+        }
+    }
+
+    // ********************************** Demographic Questions section begins *************************************
+
+    var end_screen = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "Proceed to the next page for a few last questions.",
+        response_ends_trial: true,
+        html: ' ',
+        button_label: "Continue.",
+        on_load: function() {
+            saveData_temp("_data", jsPsych.data.get().csv());
+            save_temp_data_csv();
+
+            saveData_end("_data", jsPsych.data.get().csv());
+            save_end_data_csv();
+        }
+    };
+    timeline_temp.push(end_screen);
+
+    demog_inp_qns = [
+        '<p align="left">Did you use any strategies while performing this task?<br> <input id = "strategy" class="textbox" type="text" size="50%" height="50" name="strat" required /> <br></p><p align="left">Any other feedback?<br> <input id = "fb" class ="textbox" type="text" size="50%" height="50" name="feedback" required/></p><br><br><br>',
+        '<p align="left">Age:<br> <input id = "age" type="number" size="50%" height="50" name="age" /> <br><br>Location (US state, optional): <br> <input id = "loc" type="text" size="50%" height="50" name="location"/></p><br><br><br>'
+    ]
+
+    var represent = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p>What did you think the circles represented?',
+        html: '<p><input type="text" id="Text1_id" name="Text1" size="40" required><br></p>',
+        autofocus: 'Text1_id'
+    };
+    timeline_temp.push(represent);
+
+    var strategies_fb = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p align="left"> <strong> Press Enter/Return only when are done typing.</p>',
+        html: demog_inp_qns[0]
+    };
+    timeline_temp.push(strategies_fb);
+
+    var demographic_mcq = {
+        type: jsPsychSurveyMultiChoice,
+        questions: [{
+            prompt: "<style>p{text-align: left;}</style><p><strong> How would you describe your gender? (optional)<br></strong></p>",
+            name: 'gender',
+            options: ['Female', 'Male', 'Non-binary', 'Other', 'Prefer not to say'],
+            required: false,
+            horizontal: true
+        }, {
+            prompt: "<style>p{text-align: left;}</style><p><strong> Are you of Hispanic or Latinx origin? (optional)<br></strong></p>",
+            name: 'hispanic',
+            options: ['Yes', 'No', 'Prefer not to say'],
+            required: false,
+            horizontal: true
+        }],
+    };
+    timeline_temp.push(demographic_mcq)
+
+    var race = {
+        type: jsPsychSurveyMultiSelect,
+        questions: [{
+            prompt: "<style>p{text-align: left;}</style><p><strong>How would you describe your race? (optional)<br></strong></p>",
+            name: 'race',
+            options: ['American Indian/Alaska Native', 'Asian', 'Native Hawaiian or Other Pacific Islander', 'Black or African American', 'White', 'More than one race', 'Do not wish to report'],
+            required: false,
+            horizontal: true
+        }]
+    }
+    timeline_temp.push(race)
+
+    var age_loc = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html: demog_inp_qns[1],
+    };
+    timeline_temp.push(age_loc);
+
+    var prolificID_end = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '<p align="left"> <strong>Please enter your name once again here.<br>Note: Do not press the Enter/Return key before you finish typing.</p>',
+        html: '<p align="left"> <input id = "prolific_ID_ID" class="textbox" type="text" size="50%"height="50" name="prolific_ID_name_end" required /> <br></p>',
+        on_load: function() {
+            saveData_temp("_data", jsPsych.data.get().csv());
+            save_temp_data_csv();
+        }
+    };
+    timeline_temp.push(prolificID_end);
+
+    timeline_temp.push({ // DATA SAVING PAGE
+        preamble: 'DO NOT leave this page!!!<br>You will not get paid until the task is submitted!!',
+        type: jsPsychVideoKeyboardResponse,
+        //stimulus: [demo_animations_files[demo_ind]], // webm filename
+        stimulus: ['expt_material/data_saving_text_page/dataSaving_vid1.mp4'], // webm filename
+        response_ends_trial: false,
+        response_allowed_while_playing: false,
+        trial_duration: 9000, //in ms
+        on_load: function(data) {
+            saveData_end("_data", jsPsych.data.get().csv());
+            save_end_data_csv();
+        }
+    }); // push data_saving
+
+    // REDIRECT BACK TO PROLIFIC
+    var goodbye = { // future studies - move window.location to on_finish (this still doesn't explain why data doesn't save though - because it did for some peopel
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: 'Going back to Prolific....',
+        on_load: function() {
+            window.location = 'https://app.prolific.co/submissions/complete?cc=CH64RYXC';
+        }
+    };
+    timeline_temp.push(goodbye);
+
+    jsPsych.run(timeline_temp)
+
+    // THIS LAST PART IS FOR SAVING THE DATA! 
+
+    // FILE END SAVE SCRIPTS:
+    //saved 4 times - 
+    // 1. after the main animations task
+    // 2. saved after the surveys
+    // 3. in the data save page
+    // 4. on closing the expt in the initJs part
+
+    // FILE TEMP SAVE SCRIPTS:
+    // saved X times- on loading the 
+    // 1. consent form page (prolific id data)
+    // 2. main task intro (up to demo page)
+    // 3. break pages after trial 7,14,21,28,35,42,49,56,63,70,77,84
+    // 4. survey intro screen (can be removed if needed since end save also happens here, but useful to cross-check)
+    // 5. last page of primals
+    // 6. last page of AQ
+    // 7. last page of R-GPTS
+    // 8. last page of PANAS
+    // 9. last page of RRS
+    // 10. intro page for general fb and demographics
+    // 11. enter prolific ID page
+    // total 22 files per person (11 + 11 additional times with breaks)
+
+    // **************** saving with random strings (used so far to save data) *******************
+    function saveData_end(name, data) {
+        // call the saveData function after the experiment is over
+        var date = new Date().toISOString().slice(0, 10)
+        const d = new Date();
+        let time = d.getTime();
+        jsPsych.data.addProperties({
+            time_done: time
+        })
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            filedata: data
+        }));
+    }
+
+    function saveData_temp(name, data) {
+        // call the saveData function after the experiment is over
+        var date = new Date().toISOString().slice(0, 10)
+        const d = new Date();
+        let time = d.getTime();
+        jsPsych.data.addProperties({
+            time_saved: time
+        })
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'write_data_temp.php'); // 'write_data.php' is the path to the php file described above.
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            filedata: data
+        }));
+    }
+
+
+    // **************** async saving *******************
+
+    var save_url_csv_end = "./write_data_end_ajax.php"; //php file name
+    function save_end_data_csv() {
+        console.log('End saving..')
+        const d = new Date();
+        let time = d.getTime();
+        jQuery.ajax({
+                url: save_url_csv_end,
+                type: 'POST',
+                cache: false,
+                async: true,
+                data: {
+                    data_dir: "data_csv_end_ajax/participant" + participant,
+                    file_name: 'end_sub' + participant + '_' + 'end' + '_' + time + '.csv', // the file type should be added - doesn't show up!
+                    exp_data: jsPsych.data.get().csv()
+                }
+            }) //.done(function( msg ) { // alert message not showing
+            //    alert( "end-saved: " + msg );
+            //})
+    }
+
+    var save_url_csv_temp = "./write_data_temp_ajax.php"; //php file name
+    function save_temp_data_csv() {
+        console.log('temp saving..')
+        const d = new Date();
+        let time = d.getTime();
+        jQuery.ajax({
+                url: save_url_csv_temp,
+                type: 'POST',
+                cache: false,
+                async: true,
+                data: {
+                    data_dir: "data_csv_temp_ajax/participant" + participant,
+                    file_name: 'temp_sub' + participant + '_' + 'temp' + '_' + time + '.csv', // the file type should be added - doesn't show up!
+                    exp_data: jsPsych.data.get().csv()
+                }
+            }) //.done(function( msg ) {
+            //    alert( "temp-saved: " + msg );
+            //})
+    }
+
+</script>
+</body>
+
+</html>
